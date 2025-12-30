@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>YOLO 车牌识别系统</title>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            font-family: "Microsoft YaHei", Arial;
+            color: #fff;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .container {
+            width: 900px;
+            margin: 40px auto;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .images {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+        }
+
+        .img-box {
+            width: 400px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 10px;
+            padding: 10px;
+            color: #000;
+        }
+
+        .img-box img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: none;
+        }
+
+        button {
+            width: 120px;
+            cursor: pointer;
+            background: #00c853;
+            color: #fff;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #00a844;
+        }
+    </style>
+</head>
+<body>
+
+<h2>基于 YOLO 的多目标智能识别系统</h2>
+
+<div class="container">
+
+    <div class="images">
+        <div class="img-box">
+            <p>原始图片</p>
+            <img id="originImg">
+        </div>
+
+        <div class="img-box">
+            <p>识别结果</p>
+            <img id="resultImg">
+        </div>
+    </div>
+
+    <div class="controls">
+        <input type="file" id="imageInput">
+
+        <select id="detectType">
+            <option value="plate">车牌识别</option>
+            <option value="person">行人检测</option>
+            <option value="car">车辆检测</option>
+            <option value="traffic_light">红绿灯检测</option>
+        </select>
+
+        <button onclick="startDetect()">预测</button>
+    </div>
+</div>
+
+<script>
+    const originImg = document.getElementById('originImg');
+    const resultImg = document.getElementById('resultImg');
+    const fileInput = document.getElementById('imageInput');
+
+    fileInput.addEventListener('change', function () {
+        const file = this.files[0];
+        if (file) {
+            originImg.src = URL.createObjectURL(file);
+        }
+    });
+
+    function startDetect() {
+        if (!fileInput.files.length) {
+            alert('请先选择图片');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+        formData.append('type', document.getElementById('detectType').value);
+
+        fetch('/detect/', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.image_url) {
+                resultImg.src = data.image_url + '?t=' + new Date().getTime();
+            } else {
+                alert('识别失败');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('请求失败');
+        });
+    }
+</script>
+
+</body>
+</html>
